@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Bill {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Shoe[]
+  total     Int
+  published Boolean  @default(false)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Shoe {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String?    @db.VarChar(500)
+  size        Int[]      @default([39, 40, 41, 42, 43, 44, 45, 46])
+  price       Float
+  categories  Category[]
+  bill        Bill[]
+  Images      Images[]
+}
+
+model Images {
+  id     Int    @id @default(autoincrement())
+  url    String
+  shoeId Int    @unique
+  shoe   Shoe   @relation(fields: [shoeId], references: [id])
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String
+  shoes Shoe[]
+
+  @@unique([name])
+}
+
+enum Role {
+  USER_ROLE
+  ADMIN_ROLE
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  name     String?
+  password String?
+  role     Role     @default(USER_ROLE)
+  bills    Bill[]
+  rates    Rating[]
+}
+
+model Rating {
+  id      Int      @id @default(autoincrement())
+  message String[] @default([])
+  userId  Int
+  user    User     @relation(fields: [userId], references: [id])
+}
