@@ -35,8 +35,8 @@ model Shoe {
 model Images {
   id     Int    @id @default(autoincrement())
   url    String
-  shoeId Int    @unique
-  shoe   Shoe   @relation(fields: [shoeId], references: [id])
+  shoe   Shoe?  @relation(fields: [shoeId], references: [id])
+  shoeId Int
 }
 
 model Category {

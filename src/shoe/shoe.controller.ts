@@ -1,9 +1,13 @@
 import { Controller, Delete, Get, Post, Put } from '@nestjs/common';
+import { ShoeService } from './shoe.service';
 
 @Controller('shoe')
 export class ShoeController {
+  constructor(private readonly shoeService: ShoeService) {}
   @Get()
-  getAllShoes() {}
+  getShoes() {
+    return this.shoeService.getShoes();
+  }
   @Get(':id')
   getShoeById() {}
   @Post('')
