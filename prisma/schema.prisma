@@ -10,26 +10,70 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER_ROLE
+  ADMIN_ROLE
+}
+
 model Bill {
-  id        Int      @id @default(autoincrement())
+  id        Int           @id @default(autoincrement())
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  product   BillDetails[]
+  total     Int
+  published Boolean       @default(false)
+  userId    Int
+  user      User          @relation(fields: [userId], references: [id])
+}
+
+model BillDetails {
+  bill      Bill     @relation(fields: [billId], references: [id])
+  billId    Int // relation scalar field (used in the `@relation` attribute above)
+  shoe      Shoe     @relation(fields: [shoeId], references: [id])
+  shoeId    Int // relation scalar field (used in the `@relation` attribute above)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  product   Shoe[]
-  total     Int
-  published Boolean  @default(false)
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+
+  @@id([billId, shoeId])
 }
 
 model Shoe {
-  id          Int        @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   name        String
-  description String?    @db.VarChar(500)
-  size        Int[]      @default([39, 40, 41, 42, 43, 44, 45, 46])
+  description String?       @db.VarChar(500)
+  size        Int[]         @default([39, 40, 41, 42, 43, 44, 45, 46])
   price       Float
-  categories  Category[]
-  bill        Bill[]
-  Images      Images[]
+  sale        Float         @default(0)
+  category    Category?     @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+  bill        BillDetails[]
+  images      Images[]
+  rates       Rating[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Rating {
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  shoe       Shoe     @relation(fields: [shoeId], references: [id])
+  shoeId     Int
+  rate_value Int
+  message    String[] @default([])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@id([userId, shoeId])
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  name     String?
+  password String?
+  role     Role     @default(USER_ROLE)
+  bills    Bill[]
+  rates    Rating[]
 }
 
 model Images {
@@ -45,26 +89,4 @@ model Category {
   shoes Shoe[]
 
   @@unique([name])
-}
-
-enum Role {
-  USER_ROLE
-  ADMIN_ROLE
-}
-
-model User {
-  id       Int      @id @default(autoincrement())
-  email    String   @unique
-  name     String?
-  password String?
-  role     Role     @default(USER_ROLE)
-  bills    Bill[]
-  rates    Rating[]
-}
-
-model Rating {
-  id      Int      @id @default(autoincrement())
-  message String[] @default([])
-  userId  Int
-  user    User     @relation(fields: [userId], references: [id])
 }

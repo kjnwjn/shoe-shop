@@ -7,7 +7,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
-import { SignInDto } from '../dtos/auth.dto';
+import { SignInDto, SignupDto } from '../dtos/auth.dto';
 import { Role } from '@prisma/client';
 interface SignupParams {
   name: string;
@@ -35,7 +35,7 @@ export class AuthService {
     });
     if (!user) throw new InternalServerErrorException();
 
-    return this.generateToken(email, userExist.id, userExist.role);
+    return this.generateToken(email, user.id, user.role);
   }
 
   async signIn({ email, password }: SignInParams) {
