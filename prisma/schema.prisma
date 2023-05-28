@@ -41,7 +41,7 @@ model Shoe {
   id          Int           @id @default(autoincrement())
   name        String
   description String?       @db.VarChar(500)
-  size        Int[]         @default([39, 40, 41, 42, 43, 44, 45, 46])
+  size        Warehouse[]
   price       Float
   sale        Float         @default(0)
   category    Category?     @relation(fields: [categoryId], references: [id])
@@ -51,6 +51,24 @@ model Shoe {
   rates       Rating[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+}
+
+model Warehouse {
+  size      Size     @relation(fields: [sizeId], references: [id])
+  sizeId    Int // relation scalar field (used in the `@relation` attribute above)
+  shoe      Shoe     @relation(fields: [shoeId], references: [id])
+  shoeId    Int // relation scalar field (used in the `@relation` attribute above)
+  qty       Int // relation scalar field (
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([sizeId, shoeId])
+}
+
+model Size {
+  id         Int         @id @default(autoincrement())
+  size_value Int
+  shoe       Warehouse[]
 }
 
 model Rating {

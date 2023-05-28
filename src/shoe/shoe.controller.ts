@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -9,8 +10,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { ShoeService } from './shoe.service';
-import { ResponseShoeDto } from './dtos/shoe.dto';
-import { query } from 'express';
+import {
+  CreateNewShoeDto,
+  ResponseShoeDto,
+  UpdateShoeDto,
+} from './dtos/shoe.dto';
 
 @Controller('shoe')
 export class ShoeController {
@@ -24,9 +28,16 @@ export class ShoeController {
     return this.shoeService.getShoeById(id);
   }
   @Post('')
-  createNewShoe() {}
+  createNewShoe(@Body() body: CreateNewShoeDto) {
+    return this.shoeService.createNewShoe(body);
+  }
   @Put(':id')
-  updateShoeById() {}
+  updateShoeById(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateShoeDto,
+  ) {
+    return this.shoeService.updateShoeById(id, body);
+  }
   @Delete(':id')
   deleteShoeById() {}
 }
