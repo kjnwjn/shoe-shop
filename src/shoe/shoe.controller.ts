@@ -8,6 +8,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ShoeService } from './shoe.service';
 import {
@@ -15,10 +16,15 @@ import {
   ResponseShoeDto,
   UpdateShoeDto,
 } from './dtos/shoe.dto';
+import { User, UserInfo } from 'src/user/decorators/user.decorator';
+import { AuthGuard } from 'src/guards/author.guard';
+import { Role as UserType } from '@prisma/client';
+import { Roles } from 'src/decorators/role.decorator';
 
 @Controller('shoe')
 export class ShoeController {
   constructor(private readonly shoeService: ShoeService) {}
+  @Roles(UserType.ADMIN_ROLE, UserType.USER_ROLE)
   @Get()
   getShoes(@Query('sort') sort?: string): Promise<ResponseShoeDto[]> {
     return this.shoeService.getShoes(sort);
@@ -27,16 +33,23 @@ export class ShoeController {
   getShoeById(@Param('id', ParseIntPipe) id: number) {
     return this.shoeService.getShoeById(id);
   }
-  @Post('')
-  createNewShoe(@Body() body: CreateNewShoeDto) {
-    return this.shoeService.createNewShoe(body);
+
+  @Roles(UserType.ADMIN_ROLE)
+  // @UseGuards(AuthGuard)
+  @Post()
+  createNewShoe(@Body() body: CreateNewShoeDto, @User() user: UserInfo) {
+    // console.log(user);
+
+    return 'createNewShoe';
+    // return this.shoeService.createNewShoe(body);
   }
   @Put(':id')
   updateShoeById(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateShoeDto,
   ) {
-    return this.shoeService.updateShoeById(id, body);
+    return 'update shoe';
+    // return this.shoeService.updateShoeById(id, body);
   }
   @Delete(':id')
   deleteShoeById() {}

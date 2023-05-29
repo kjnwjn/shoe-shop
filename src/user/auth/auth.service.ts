@@ -44,7 +44,12 @@ export class AuthService {
         email,
       },
     });
-    if (!userExist) throw new ConflictException();
+    if (!userExist)
+      throw new ConflictException({
+        status: false,
+        statusCode: 400,
+        msg: 'User not found',
+      });
     const isUserExist = await bcrypt.compare(password, userExist.password);
     if (!isUserExist) throw new HttpException('Invalid credentials', 400);
 

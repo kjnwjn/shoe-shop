@@ -36,7 +36,6 @@ export class ResponseShoeDto {
     return this.categoryId;
   }
   categoryId: number;
-
   image: string;
   @Exclude()
   createdAt: Date;
@@ -91,4 +90,9 @@ export class UpdateShoeDto {
   @IsNumber()
   @IsPositive()
   categoryId: number;
+  // @IsOptional()
+  // @IsArray()
+  // @ValidateNested({ each: true })
+  // @Type(() => Warehouse)
+  // size: Warehouse[]
 }

@@ -73,6 +73,12 @@ export class ShoeService {
             url: true,
           },
         },
+        size: {
+          select: {
+            sizeId: true,
+            qty: true,
+          },
+        },
       },
     });
     if (!shoe) throw new NotFoundException();
@@ -86,45 +92,54 @@ export class ShoeService {
     categoryId,
     images,
   }: CreateShoeParams) {
+    const categoryExist = await this.prismaService.category.findUnique({
+      where: {
+        id: categoryId,
+      },
+    });
+
+    if (!categoryExist)
+      throw new NotFoundException({
+        status: false,
+        statusCode: 404,
+        description: `categoryId :${categoryId} is not exit`,
+      });
+    const shoe = await this.prismaService.shoe.create({
+      data: {
+        name,
+        description,
+        price,
+        sale,
+        categoryId,
+      },
+    });
+    const shoeImage = images.map((image) => {
+      return { ...image, shoeId: shoe.id };
+    });
+
+    await this.prismaService.images.createMany({
+      data: shoeImage,
+      skipDuplicates: true,
+    });
+    return new ResponseShoeDto(shoe);
+  }
+  async updateShoeById(id: number, data: UpdateShoeParams) {
     try {
-      const shoe = await this.prismaService.shoe.create({
-        data: {
-          name,
-          description,
-          price,
-          sale,
-          categoryId: 1,
+      const shoe = await this.prismaService.shoe.findUnique({
+        where: {
+          id,
         },
       });
-      const shoeImage = images.map((image) => {
-        return { ...image, shoeId: shoe.id };
+      if (!shoe) throw new NotFoundException();
+      const shoeUpdated = await this.prismaService.shoe.update({
+        where: {
+          id,
+        },
+        data: data,
       });
-      await this.prismaService.images.createMany({
-        data: shoeImage,
-        skipDuplicates: true,
-      });
-      return new ResponseShoeDto(shoe);
-    } catch (err) {
-      throw new Error(err);
+      return new ResponseShoeDto(shoeUpdated);
+    } catch (error) {
+      throw new Error(error);
     }
   }
-  // async updateShoeById(id: number, data: UpdateShoeParams) {
-  //   try {
-  //     const shoe = await this.prismaService.shoe.findUnique({
-  //       where: {
-  //         id,
-  //       },
-  //     });
-  //     if (!shoe) throw new NotFoundException();
-  //     const shoeUpdated = await this.prismaService.shoe.update({
-  //       where: {
-  //         id,
-  //       },
-  //       data: data,
-  //     });
-  //     return new ResponseShoeDto(shoeUpdated);
-  //   } catch (error) {
-  //     throw new Error(error);
-  //   }
-  // }
 }
