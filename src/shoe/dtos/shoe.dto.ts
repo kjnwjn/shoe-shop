@@ -11,13 +11,8 @@ import {
   ValidateNested,
 } from 'class-validator';
 class Warehouse {
-  shoeId: number;
   sizeId: number;
   qty: number;
-  @Exclude()
-  createdAt: Date;
-  @Exclude()
-  updatedAt: Date;
 }
 export class ResponseShoeDto {
   id: number;
@@ -37,6 +32,11 @@ export class ResponseShoeDto {
   }
   categoryId: number;
   image: string;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => Warehouse)
+  size: Warehouse[];
+  qty: number;
   @Exclude()
   createdAt: Date;
   @Exclude()
@@ -66,6 +66,10 @@ export class CreateNewShoeDto {
   @IsNumber()
   @IsPositive()
   categoryId: number;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => Warehouse)
+  size: Warehouse[];
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => Image)

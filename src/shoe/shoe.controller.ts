@@ -8,7 +8,6 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { ShoeService } from './shoe.service';
 import {
@@ -17,7 +16,6 @@ import {
   UpdateShoeDto,
 } from './dtos/shoe.dto';
 import { User, UserInfo } from 'src/user/decorators/user.decorator';
-import { AuthGuard } from 'src/guards/author.guard';
 import { Role as UserType } from '@prisma/client';
 import { Roles } from 'src/decorators/role.decorator';
 
@@ -35,22 +33,20 @@ export class ShoeController {
   }
 
   @Roles(UserType.ADMIN_ROLE)
-  // @UseGuards(AuthGuard)
   @Post()
   createNewShoe(@Body() body: CreateNewShoeDto, @User() user: UserInfo) {
-    // console.log(user);
-
-    return 'createNewShoe';
-    // return this.shoeService.createNewShoe(body);
+    return this.shoeService.createNewShoe(body);
   }
   @Put(':id')
   updateShoeById(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateShoeDto,
   ) {
-    return 'update shoe';
-    // return this.shoeService.updateShoeById(id, body);
+    return this.shoeService.updateShoeById(id, body);
   }
+  // @Roles(UserType.ADMIN_ROLE)
   @Delete(':id')
-  deleteShoeById() {}
+  deleteShoeById(@Param('id', ParseIntPipe) id: number) {
+    return this.shoeService.deleteShoeById(id);
+  }
 }

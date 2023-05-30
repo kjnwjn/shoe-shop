@@ -7,9 +7,10 @@ import { ShoeModule } from './shoe/shoe.module';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { UserInterceptor } from './user/interceptors/user.interceptor';
 import { AuthGuard } from './guards/author.guard';
+import { WarehouseModule } from './warehouse/warehouse.module';
 
 @Module({
-  imports: [UserModule, PrismaModule, ShoeModule],
+  imports: [UserModule, PrismaModule, ShoeModule, WarehouseModule],
   controllers: [AppController],
   providers: [
     AppService,
