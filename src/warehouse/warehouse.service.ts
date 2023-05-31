@@ -4,6 +4,8 @@ import {
   InternalServerErrorException,
   NotFoundException,
   ConflictException,
+  forwardRef,
+  Inject,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ShoeUpdateQtyDto, WarehouseCreateDto } from './dtos/warehouse.dto';
@@ -14,6 +16,7 @@ import { ShoeService } from 'src/shoe/shoe.service';
 export class WarehouseService {
   constructor(
     private readonly prismaService: PrismaService,
+    @Inject(forwardRef(() => ShoeService))
     private readonly shoeService: ShoeService,
   ) {}
   async getAll(sort?: string) {
@@ -71,14 +74,6 @@ export class WarehouseService {
   }
   async createNew({ size, shoeId }: WarehouseCreateDto) {
     await this.shoeService.getShoeById(shoeId);
-    // const size = await this.prismaService.size.findUnique({
-    //   where: {
-    //     id: sizeId,
-    //   },
-    // });
-    // if (!size) {
-    //   throw new NotFoundException(`Size ${sizeId} not found`);
-    // }
     const shoe = await this.prismaService.warehouse.findMany({
       where: {
         shoeId,
@@ -87,26 +82,19 @@ export class WarehouseService {
     const data = size.map((item) => {
       return { ...item, shoeId };
     });
-    console.log(data);
-
-    if (shoe) {
+    if (shoe?.length > 0) {
       throw new ConflictException(`Shoe ${shoeId} already exists in warehouse`);
     }
-    // const newItemInWareHouse = await this.prismaService.warehouse
-    //   .createMany({
-    //     data: {
-    //       sizeId,
-    //       shoeId,
-    //       qty,
-    //     },
-    //   })
-    //   .catch((err) => {
-    //     console.log({ err });
+    const newItemInWareHouse = await this.prismaService.warehouse
+      .createMany({
+        data: data,
+      })
+      .catch((err) => {
+        console.log({ err });
 
-    //     throw new InternalServerErrorException(err);
-    //   });
+        throw new InternalServerErrorException(err);
+      });
 
-    // return newItemInWareHouse;
-    return;
+    return newItemInWareHouse;
   }
 }

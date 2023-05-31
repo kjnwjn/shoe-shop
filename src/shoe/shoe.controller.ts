@@ -37,6 +37,7 @@ export class ShoeController {
   createNewShoe(@Body() body: CreateNewShoeDto, @User() user: UserInfo) {
     return this.shoeService.createNewShoe(body);
   }
+  @Roles(UserType.ADMIN_ROLE)
   @Put(':id')
   updateShoeById(
     @Param('id', ParseIntPipe) id: number,
@@ -44,7 +45,7 @@ export class ShoeController {
   ) {
     return this.shoeService.updateShoeById(id, body);
   }
-  // @Roles(UserType.ADMIN_ROLE)
+  @Roles(UserType.ADMIN_ROLE)
   @Delete(':id')
   deleteShoeById(@Param('id', ParseIntPipe) id: number) {
     return this.shoeService.deleteShoeById(id);

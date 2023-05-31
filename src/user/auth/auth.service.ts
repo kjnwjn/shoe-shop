@@ -35,7 +35,12 @@ export class AuthService {
     });
     if (!user) throw new InternalServerErrorException();
 
-    return this.generateToken(email, user.id, user.role);
+    return {
+      message: `Create account for ${user.name} successfully`,
+      data: {
+        token: this.generateToken(email, user.id, user.role),
+      },
+    };
   }
 
   async signIn({ email, password }: SignInParams) {

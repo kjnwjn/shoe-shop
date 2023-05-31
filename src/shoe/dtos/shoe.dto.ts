@@ -11,7 +11,13 @@ import {
   ValidateNested,
 } from 'class-validator';
 class Warehouse {
+  @IsNumber()
+  @IsNotEmpty()
+  @IsPositive()
   sizeId: number;
+  @IsNumber()
+  @IsPositive()
+  @IsNotEmpty()
   qty: number;
 }
 export class ResponseShoeDto {

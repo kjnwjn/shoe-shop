@@ -8,9 +8,18 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { UserInterceptor } from './user/interceptors/user.interceptor';
 import { AuthGuard } from './guards/author.guard';
 import { WarehouseModule } from './warehouse/warehouse.module';
+import { RatingModule } from './rating/rating.module';
+import { BillModule } from './bill/bill.module';
 
 @Module({
-  imports: [UserModule, PrismaModule, ShoeModule, WarehouseModule],
+  imports: [
+    UserModule,
+    PrismaModule,
+    ShoeModule,
+    WarehouseModule,
+    RatingModule,
+    BillModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,

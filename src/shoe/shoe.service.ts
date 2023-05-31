@@ -3,6 +3,8 @@ import {
   NotFoundException,
   HttpException,
   HttpCode,
+  forwardRef,
+  Inject,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ResponseShoeDto } from './dtos/shoe.dto';
@@ -35,8 +37,11 @@ interface UpdateShoeParams {
 @Injectable()
 export class ShoeService {
   constructor(
-    private readonly prismaService: PrismaService, // private readonly warehouseService: WarehouseService,
+    private readonly prismaService: PrismaService,
+    @Inject(forwardRef(() => WarehouseService))
+    private readonly warehouseService: WarehouseService,
   ) {}
+
   async getShoes(sort?: string): Promise<ResponseShoeDto[]> {
     let sortValue: Object;
     if (sort == 'newest') {
@@ -141,8 +146,8 @@ export class ShoeService {
     const shoeImage = images.map((image) => {
       return { ...image, shoeId: shoe.id };
     });
+    await this.warehouseService.createNew({ size, shoeId: shoe.id });
 
-    // await this.warehouseService.createNew({shoe})
     await this.prismaService.images.createMany({
       data: shoeImage,
       skipDuplicates: true,
