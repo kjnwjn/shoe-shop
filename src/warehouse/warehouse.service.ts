@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ShoeUpdateQtyDto, WarehouseCreateDto } from './dtos/warehouse.dto';
-import { ResponseShoeDto } from 'src/shoe/dtos/shoe.dto';
 import { ShoeService } from 'src/shoe/shoe.service';
 
 @Injectable()

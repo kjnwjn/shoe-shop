@@ -13,17 +13,25 @@ datasource db {
 enum Role {
   USER_ROLE
   ADMIN_ROLE
+  EMPLOYEE_ROLE
+}
+
+enum BillStatus {
+  PENDING
+  PROVISIONAL
+  PAID
 }
 
 model Bill {
   id        Int           @id @default(autoincrement())
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  product   BillDetails[]
   total     Int
-  published Boolean       @default(false)
+  isPaid    Boolean       @default(false)
+  status    BillStatus
+  product   BillDetails[]
   userId    Int
   user      User          @relation(fields: [userId], references: [id])
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 }
 
 model BillDetails {
