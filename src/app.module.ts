@@ -10,6 +10,8 @@ import { AuthGuard } from './guards/author.guard';
 import { WarehouseModule } from './warehouse/warehouse.module';
 import { RatingModule } from './rating/rating.module';
 import { BillModule } from './bill/bill.module';
+import { TestModule } from './test/test.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { BillModule } from './bill/bill.module';
     WarehouseModule,
     RatingModule,
     BillModule,
+    TestModule,
+    CartModule,
   ],
   controllers: [AppController],
   providers: [

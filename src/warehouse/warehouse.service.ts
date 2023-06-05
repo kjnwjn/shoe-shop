@@ -27,6 +27,7 @@ export class WarehouseService {
     }
     const warehouseList = await this.prismaService.warehouse.findMany({
       select: {
+        id: true,
         shoe: true,
         size: true,
         qty: true,

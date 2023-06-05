@@ -18,15 +18,16 @@ enum Role {
 
 enum BillStatus {
   PENDING
-  PROVISIONAL
   PAID
+  CANCELLED
+  PROVISIONAL
 }
 
 model Bill {
   id        Int           @id @default(autoincrement())
-  total     Int
+  total     Int           @default(0)
   isPaid    Boolean       @default(false)
-  status    BillStatus
+  status    BillStatus    @default(PENDING)
   product   BillDetails[]
   userId    Int
   user      User          @relation(fields: [userId], references: [id])

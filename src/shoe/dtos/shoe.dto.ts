@@ -20,6 +20,7 @@ class Warehouse {
   @IsNotEmpty()
   qty: number;
 }
+
 export class ResponseShoeDto {
   id: number;
   name: string;
