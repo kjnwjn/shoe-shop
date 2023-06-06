@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateNewBillDto, ResponseBillDto } from './dtos/bill.dto';
@@ -114,10 +115,7 @@ export class BillService {
       }),
     });
   }
-  async createNewBill(
-    userData: UserInfo,
-    { product }: paymentCheck,
-  ): Promise<ResponseBillDto> {
+  async createNewBill(userData: UserInfo, { product }: paymentCheck) {
     const user = await this.userSerVice.getUserById(userData);
     const shoeList = await this.warehouseService.getAll();
 
@@ -139,9 +137,10 @@ export class BillService {
         });
       }
     });
-    const total: number = shoeMatches.reduce((sum, shoeMatch) => {
-      console.log(sum, shoeMatch);
+    if (shoeMatches.length !== product.length)
+      throw new ConflictException(`Some Shoe is not available`);
 
+    const total: number = shoeMatches.reduce((sum, shoeMatch) => {
       return sum + shoeMatch?.shoe?.price * shoeMatch?.qty;
     }, 0);
 
@@ -149,13 +148,20 @@ export class BillService {
       total,
       userId: user.id,
     };
-    if (shoeMatches.length !== product.length) throw new ConflictException();
     const bills = await this.prismaService.bill.create({
       data,
     });
-    console.log(bills);
-
     if (!bills) throw new ConflictException();
+    const warehouseData = await this.prismaService.billDetails.createMany({
+      data: shoeMatches?.map((item) => {
+        return {
+          warehouseId: item?.id,
+          billId: bills.id,
+          qty: item?.qty,
+        };
+      }),
+    });
+    if (!warehouseData) throw new ConflictException();
     const productData = shoeMatches.map((shoeMatch) => {
       return {
         warehouseId: shoeMatch?.id,
@@ -164,14 +170,14 @@ export class BillService {
       };
     });
 
-    const session = await this.createPayment(
-      shoeMatches,
-      bills.id,
-      productData,
-    );
-    return;
+    const session = await this.createPayment(shoeMatches, bills.id);
+    return {
+      status: true,
+      statusCode: 200,
+      checkout_url: session.url,
+    };
   }
-  async createPayment(products, bill_id: number, product_data: any) {
+  async createPayment(products, bill_id: number) {
     const stripe = new Stripe(process.env.STRIPE_TOKEN, {
       apiVersion: '2022-11-15',
     });
@@ -182,35 +188,90 @@ export class BillService {
             unit_amount: item.shoe.price,
             currency: 'VND',
             recurring: { interval: 'month' },
-            product_data: { name: String(item.shoe.id) },
+            product_data: { name: String(item.shoe.name) },
           });
           return { price: b.id, quantity: item.qty };
         }),
       );
       const session = await stripe.checkout.sessions.create({
-        success_url: `http://localhost:3000/bill/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: `http://localhost:3000/bill/payment/success/${bill_id}?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: 'http://localhost:3000/bill/payment/failed',
         line_items,
         mode: 'subscription',
-        metadata: {
-          bill_id: bill_id,
-          product_data: product_data,
-        },
       });
-      console.log(session);
 
       return session;
     } catch (error) {
       throw new Error(error);
     }
   }
-  async paymentSuccess(session_id: string, bill_id: string, user: UserInfo) {
-    const stripe = new Stripe(process.env.STRIPE_TOKEN, {
-      apiVersion: '2022-11-15',
+  async paymentSuccess(bill_id: number): Promise<ResponseBillDto> {
+    const bill = await this.getBillById(Number(bill_id));
+    if (!bill) throw new NotFoundException();
+    const updateBill = await this.prismaService.bill.update({
+      where: {
+        id: bill_id,
+      },
+      data: {
+        status: 'PAID',
+        isPaid: true,
+      },
+      select: {
+        ...billSelected,
+        product: {
+          select: {
+            warehouse: {
+              select: {
+                shoe: {
+                  select: {
+                    id: true,
+                    name: true,
+                    price: true,
+                    sale: true,
+                  },
+                },
+                size: {
+                  select: {
+                    size_value: true,
+                  },
+                },
+              },
+            },
+            qty: true,
+          },
+        },
+
+        user: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+          },
+        },
+      },
     });
-    const session = stripe.checkout.sessions
-      .retrieve(session_id)
-      .then((response) => console.log(response));
-    // console.log(session);
+    await bill.product.forEach(async (item) => {
+      await this.prismaService.warehouse.update({
+        data: {
+          qty: {
+            decrement: item.qty,
+          },
+        },
+        where: {
+          id: item.id,
+        },
+      });
+    });
+
+    return new ResponseBillDto({
+      ...updateBill,
+      product: updateBill?.product?.map((item) => {
+        return {
+          ...item?.warehouse?.shoe,
+          ...item?.warehouse?.size,
+          qty: item.qty,
+        };
+      }),
+    });
   }
 }
